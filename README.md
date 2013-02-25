@@ -1,4 +1,4 @@
 VpnAddressPublisher
 ===================
 
-Shinetech China TianJin team vpn address sender.
+Shinetech China TianJin team vpn address publisher.

@@ -35,6 +35,12 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="VpnAddressPublisher.cs" />
     <Compile Include="IVpnAddressHoster.cs" />
+    <Compile Include="IVpnAddressHosterFactory.cs" />
+    <Compile Include="VpnAddressHosters\GitHubRawPageHoster.cs" />
+    <Compile Include="DefaultVpnAddressHosterFactory.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="VpnAddressHosters\" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VpnAddressPublisher", "VpnAddressPublisher\VpnAddressPublisher.csproj", "{49AE0EA3-D122-483A-8532-D0631C7D9B6A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{49AE0EA3-D122-483A-8532-D0631C7D9B6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49AE0EA3-D122-483A-8532-D0631C7D9B6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49AE0EA3-D122-483A-8532-D0631C7D9B6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49AE0EA3-D122-483A-8532-D0631C7D9B6A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = VpnAddressPublisher\VpnAddressPublisher.csproj
+	EndGlobalSection
+EndGlobal

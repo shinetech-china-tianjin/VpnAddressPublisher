@@ -12,6 +12,7 @@ TestResults
 # User-specific files
 *.suo
 *.user
+*.userprefs
 *.sln.docstates
 
 # Build results

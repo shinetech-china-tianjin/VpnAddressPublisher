@@ -7,88 +7,89 @@ using System.Configuration;
 
 namespace VpnAddressPublisher
 {
-	public class GitHubRawPageHoster : IVpnAddressHoster
-	{
-		private const string HOSTER_REPOSITORY = @"https://github.com/shinetech-china-tianjin/VpnAddressHoster.git";
-		private const string LOCAL_REPOSITORY = @"VpnAddressHoster";
-		private const string ADDRESS_BRANCH = @"LOCAL_REPOSITORY";
-		private const string VPN_ADDRESS_FILE = @"vpn.address";
+    public class GitHubRawPageHoster : IVpnAddressHoster
+    {
+        public void PublishVpnAddress(IPAddress ipaddress) {
+            EnsureGitRepositoryExist();
 
-		public void PublishVpnAddress (IPAddress ipaddress) {
-			EnsureGitRepositoryExist();
-			
-			using (var repository = new Repository(LOCAL_REPOSITORY))
-			{
-				var vpnAddressBranch = repository.Branches.First(branch => string.Equals(branch.Name, ADDRESS_BRANCH, StringComparison.CurrentCultureIgnoreCase));
+            using (var repository = new Repository(GitHubHosterConfiguration.LocalRepositoryName)) {
+                
 
-				CleanUpAndCheckoutAddressBranch(repository, vpnAddressBranch);
-				ModifyVpnAddressFileAndCommit(repository, ipaddress);
-				PushAddressToRemote(repository, vpnAddressBranch);
-			}
-		}
+                CleanUpCurrentBranch(repository);
+                ModifyVpnAddressFileAndCommit(repository, ipaddress);
+                PushAddressToRemote(repository);
+            }
+        }
 
-		private string GetLocalRepositoryDirectory(){
-			return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, LOCAL_REPOSITORY);
-		}
+        private string GetLocalRepositoryDirectory() {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, GitHubHosterConfiguration.LocalRepositoryName);
+        }
 
-		private void EnsureGitRepositoryExist(){
-			if(Directory.Exists(GetLocalRepositoryDirectory())){
-				return;
-			}
+        private void EnsureGitRepositoryExist() {
+            if (Directory.Exists(GetLocalRepositoryDirectory())) {
+                return;
+            }
 
-			Repository.Clone(HOSTER_REPOSITORY, LOCAL_REPOSITORY);
-		}
+            using (var repository = Repository.Clone(GitHubHosterConfiguration.HosterRepository, GitHubHosterConfiguration.LocalRepositoryName)) {
+                var remoteVpnAddressBranch = repository.Branches.First(branch =>
+                        string.Equals(
+                            branch.Name,
+                            "origin/" + GitHubHosterConfiguration.HosterBranch,
+                            StringComparison.CurrentCultureIgnoreCase));
+                var localBranch = repository.CreateBranch(GitHubHosterConfiguration.HosterBranch, remoteVpnAddressBranch.CanonicalName);
+                repository.Branches.Update(localBranch, branch => branch.Upstream = remoteVpnAddressBranch.CanonicalName);
+                repository.Checkout(localBranch);
+            }
+        }
 
-		private void CleanUpAndCheckoutAddressBranch (Repository repository, Branch vpnAddressBranch)
-		{
-			repository.Reset();
-			repository.Checkout(vpnAddressBranch.CanonicalName);
-			vpnAddressBranch.Remote.Fetch();
-		}
+        private void CleanUpCurrentBranch(Repository repository) {
+            repository.Reset(ResetOptions.Hard);
+            repository.RemoveUntrackedFiles();
 
-		private void ModifyVpnAddressFileAndCommit (Repository repository, IPAddress ipaddress)
-		{	
-			ModifyVpnAddress(ipaddress);
+            repository.Head.Remote.Fetch();
+        }
 
-			var signature = new Signature(
-				ConfigurationManager.AppSettings["CommitterName"],
-				ConfigurationManager.AppSettings["CommitterEmail"],
-				DateTimeOffset.Now
-			);
+        private void ModifyVpnAddressFileAndCommit(Repository repository, IPAddress ipaddress) {
+            ModifyVpnAddress(ipaddress);
 
-			foreach (var changed in repository.Diff.Compare())
-			{
-				repository.Index.Stage(changed.Path);
-			}
+            var signature = new Signature(
+                GitHubHosterConfiguration.CommitterName,
+                GitHubHosterConfiguration.CommitterEmail,
+                DateTimeOffset.Now
+            );
 
-			repository.Commit(GetCommitMessage(), signature);
-		}
+            foreach (var changed in repository.Diff.Compare()) {
+                repository.Index.Stage(changed.Path);
+            }
 
-		private string GetCommitMessage ()
-		{
-			var format = "[0]Commit new vpn address on {1} ({2})";
-			return string.Format(format, 
-			                     Environment.MachineName, 
-			                     DateTime.Now, 
-			                     TimeZone.CurrentTimeZone.StandardName);
-		}
+            repository.Commit(GetCommitMessage(), signature);
+        }
 
-		private void ModifyVpnAddress (IPAddress ipaddress)
-		{
-			var filePath = Path.Combine(GetLocalRepositoryDirectory(), VPN_ADDRESS_FILE);
-			using(var writer = new StreamWriter(filePath)){
-				writer.WriteLine(ipaddress.ToString());
-			}
-		}
+        private string GetCommitMessage() {
+            var format = "[0]Commit new vpn address on {1} ({2})";
+            return string.Format(format,
+                                 Environment.MachineName,
+                                 DateTime.Now,
+                                 TimeZone.CurrentTimeZone.StandardName);
+        }
 
-		private void PushAddressToRemote (Repository repository, Branch vpnAddressBranch)
-		{
-			var credentials = new Credentials() { 
-				Username = ConfigurationManager.AppSettings["GitHubUserName"], 
-				Password = ConfigurationManager.AppSettings["GitHubPassword"]
-			};
-			repository.Network.Push(vpnAddressBranch.Remote, repository.Head.CanonicalName, credentials);
-		}
-	}
+        private void ModifyVpnAddress(IPAddress ipaddress) {
+            var filePath = Path.Combine(
+                GetLocalRepositoryDirectory(),
+                GitHubHosterConfiguration.HosterVpnAddressFile);
+            using (var writer = new StreamWriter(filePath)) {
+                writer.WriteLine(ipaddress.ToString());
+            }
+        }
+
+        private void PushAddressToRemote(Repository repository) {
+            var credentials = new Credentials() {
+                Username = GitHubHosterConfiguration.GitHubUserName,
+                Password = GitHubHosterConfiguration.GitHubPassword
+            };
+            var head = repository.Head;
+            repository.Network.Push(head.Remote, head.CanonicalName, credentials);
+        }
+    }
 }
 

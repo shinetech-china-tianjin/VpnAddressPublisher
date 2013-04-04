@@ -7,7 +7,7 @@ namespace VpnAddressPublisher
 	{
 		private IVpnAddressHosterFactory _hosterFactory;
 
-		public VpnAddressPublisher (IVpnAddressHosterFactory vpnAddressHosterFactory)
+		public VpnAddressPublisher (IVpnAddressHosterFactory vpnAddressHosterFactory = null)
 		{
 			_hosterFactory = vpnAddressHosterFactory ?? new DefaultVpnAddressHosterFactory ();
 		}

@@ -7,6 +7,7 @@ using System.Configuration;
 
 namespace VpnAddressPublisher
 {
+	// make it to internal?
     public class GitHubRawPageHoster : IVpnAddressHoster
     {
         public void PublishVpnAddress(IPAddress ipaddress) {
